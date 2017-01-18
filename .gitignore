@@ -37,3 +37,4 @@ coverage.xml
 
 # Local virtual environment
 .env
+venv

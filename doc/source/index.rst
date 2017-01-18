@@ -6,9 +6,11 @@ Logga
 Contents:
 
 .. toctree::
-    :maxdepth: 2
+   :maxdepth: 2
 
-    modules/log.rst
+   Python Logging Helper <modules/log.rst>
+
+
 
 Indices and tables
 ==================
