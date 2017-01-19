@@ -3,33 +3,34 @@
 .. toctree::
     :maxdepth: 2
 
-Log - Logger
-============
-The :mod:`logga` module wraps the standard Python :mod:`logging`
-module and abstract some of the messy parts.  :mod:`logging` itself is
+Logga
+=====
+The ``logga`` module wraps the standard Python
+`logging <https://docs.python.org/3/howto/logging.html>`_
+module and abstract some of the messy parts.  `logging` itself is
 is similar to (possibly even motivated by) the
 `log4j <http://http://logging.apache.org/log4j/1.2/>`_ facility.
-Most importantly, :mod:`logging` guarantees a singleton object that can be
-used throughout your project.
+Most importantly, `logging <https://docs.python.org/3/howto/logging.html>`_
+guarantees a singleton object that can be used throughout your project.
 
-One of the handiest features with :mod:`logga` is that it
+One of the handiest features with ``logga`` is that it
 automatically detects the output stream and is able to direct the logging
 ouput to ``STDOUT`` or to a file stream (if configured).
 
 Simplest Usage (Console)
 ------------------------
 
-Simply import the :mod:`logga` ``log`` handler object into your
+Simply import the ``logga`` ``log`` handler object into your
 project.
 
 
     .. note::
 
-        Behind the scenes, the :mod:`logga` ``log`` handler object
+        Behind the scenes, the ``logga`` ``log`` handler object
         is instantiated through the module-level function
-        ``logging.getLogger(name)``.  Multiple calls to :func:`getLogger`
+        ``logging.getLogger(name)``.  Multiple calls to ``getLogger``
         with the same name will always return a reference to the same
-        Logger object.
+        ``logga`` object.
         
         ``name`` is defined as the highest level Python calling module.  For
         example, in the :ref:`module_usage_file_based_configuration`
@@ -56,7 +57,7 @@ Module Usage (File-based Configuration)
 ---------------------------------------
 
 Logging from your ``*.py`` is probably a more useful proposition.
-Similarly, import the :mod:`logga` to your python module.
+Similarly, import the ``logga`` to your python module.
 To demonstrate, add the following code into a file called ``you_beaut.py``::
 
     from logga import log
@@ -70,7 +71,8 @@ To execute::
 
 But what if you want to log to a file?  In this case you will have to
 provide a configuration file.  The structure of the config is
-standard :mod:`logging`.  In this case, place the following into
+standard `logging <https://docs.python.org/3/howto/logging.html>`_.
+In this case, place the following into
 a the file called ``log.conf`` in the same directory as ``you_beaut.py``::
 
     [loggers]
@@ -120,19 +122,3 @@ stream defined by ``handler_youBeautFileHandler`` section from the
 
     $ cat /var/tmp/you_beaut.log
     2014-06-26 11:39:34,903 (DEBUG): Log from inside my Python module
-
-Functions
----------
-.. currentmodule:: logga
-.. autofunction:: set_console
-.. autofunction:: set_log_level
-.. autofunction:: suppress_logging
-.. autofunction:: enable_logging
-.. autofunction:: autolog
-
-Indices and tables
-------------------
- 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
