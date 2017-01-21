@@ -1,124 +1,62 @@
-.. Log - Logger
-
-.. toctree::
-    :maxdepth: 2
-
+#####
 Logga
-=====
-The ``logga`` module wraps the standard Python
-`logging <https://docs.python.org/3/howto/logging.html>`_
-module and abstract some of the messy parts.  `logging` itself is
-is similar to (possibly even motivated by) the
-`log4j <http://http://logging.apache.org/log4j/1.2/>`_ facility.
-Most importantly, `logging <https://docs.python.org/3/howto/logging.html>`_
-guarantees a singleton object that can be used throughout your project.
+#####
+Convert configuration items into Python objects.
 
-One of the handiest features with ``logga`` is that it
-automatically detects the output stream and is able to direct the logging
-ouput to ``STDOUT`` or to a file stream (if configured).
+*************
+Prerequisites
+*************
+Targeting Python 3 here on a Linux platform, namely CentOS 7.
 
-Simplest Usage (Console)
-------------------------
+On a vanilla CentOS 7, you will need to install Python 3 manually.  `IUS <https://ius.io/GettingStarted/>`_ can help you with this.  Then::
 
-Simply import the ``logga`` ``log`` handler object into your
-project.
+    $ sudo yum install -y python35u
 
+Now, set ``python3`` to your Python 3 executable::
 
-    .. note::
+    $ sudo alternatives /usr/bin/python3 python3 /urs/bin/python3.5 20000
 
-        Behind the scenes, the ``logga`` ``log`` handler object
-        is instantiated through the module-level function
-        ``logging.getLogger(name)``.  Multiple calls to ``getLogger``
-        with the same name will always return a reference to the same
-        ``logga`` object.
-        
-        ``name`` is defined as the highest level Python calling module.  For
-        example, in the :ref:`module_usage_file_based_configuration`
-        sample below, ``name`` will be ``you_beaut.py``.  For normal
-        console-based output, name would be ``<stdin>``.
+Note: ``python3`` must exist in order for the project ``Makefile`` to function correctly.
 
-The following example demonstrates usage directly under the Python
-interpreter::
+***************
+Getting Started
+***************
+Get the code::
 
-    $ python
-    >>> from logga import log
-    >>> log.debug('This is a DEBUG level logging')
-    2014-06-26 10:07:59,297 DEBUG:: This is a DEBUG level logging
-    >>> log.info('This is a INFO level logging')
-    2014-06-26 10:08:12,481 INFO:: This is a INFO level logging
+    $ git clone https://github.com/loum/logga.git
+    
+Build the virtual environment and download project dependencies::
 
-.. note::
+    $ cd logga
+    $ make init_wheel
+    
+Run the tests to make sure all is OK::
 
-    This example demonstrates console-based usage that writes to ``STDOUT``
+    $ source venv/bin/activate
+    (venv) $ make tests
 
-.. _module_usage_file_based_configuration:
+***********************
+Build the Documentation
+***********************
+Project documentation is self contained under the ``doc/source`` directory.  To build the documentation locally::
 
-Module Usage (File-based Configuration)
----------------------------------------
+    $ make docs
 
-Logging from your ``*.py`` is probably a more useful proposition.
-Similarly, import the ``logga`` to your python module.
-To demonstrate, add the following code into a file called ``you_beaut.py``::
+The project comes with a simple web server that allows you to present the docs from within your own environment::
 
-    from logga import log
+    $ cd docs/build
+    $ ./http_server.py
+    
+Note: The web server will block your CLI and all activity will be logged to the console.  To end serving pages, just ``Ctrl-C``.
+    
+To view pages, open up a web browser and navigate to ``http:<your_server_IP>:8888``
 
-    log.debug('Log from inside my Python module')
+****
+FAQs
+****
+**Why can't access the docs from my browser?**
 
-To execute::
+Firewall?  Try::
 
-    $ python you_beaut.py
-    2014-06-26 10:41:15,036 DEBUG:: Log from inside my Python module
-
-But what if you want to log to a file?  In this case you will have to
-provide a configuration file.  The structure of the config is
-standard `logging <https://docs.python.org/3/howto/logging.html>`_.
-In this case, place the following into
-a the file called ``log.conf`` in the same directory as ``you_beaut.py``::
-
-    [loggers]
-    keys=root,you_beaut.py,console
-
-    [handlers]
-    keys=youBeautFileHandler,consoleHandler
-
-    [formatters]
-    keys=simpleFormatter
-
-    [logger_root]
-    level=DEBUG
-    handlers=consoleHandler
-
-    [logger_console]
-    level=DEBUG
-    handlers=consoleHandler
-    qualname=console
-    propagate=0
-
-    [logger_you_beaut.py]
-    level=DEBUG
-    qualname=you_beaut.py
-    handlers=youBeautFileHandler
-
-    [handler_youBeautFileHandler]
-    class=handlers.TimedRotatingFileHandler
-    level=DEBUG
-    formatter=simpleFormatter
-    args=(os.path.join(os.sep, 'var', 'tmp', 'you_beaut.log'), 'midnight')
-
-    [handler_consoleHandler]
-    class=StreamHandler
-    level=DEBUG
-    formatter=simpleFormatter
-    args=(sys.stdout, )
-
-    [formatter_simpleFormatter]
-    format=%(asctime)s (%(levelname)s): %(message)s
-    datefmt=
-
-Now when you ``$ python you_beaut.py`` you will notice that output to
-the console is suppressed.  Instead, the output is directed to a file
-stream defined by ``handler_youBeautFileHandler`` section from the
-``log.conf`` file.  To verify::
-
-    $ cat /var/tmp/you_beaut.log
-    2014-06-26 11:39:34,903 (DEBUG): Log from inside my Python module
+    $ sudo firewall-cmd --zone=public --add-port=8888/tcp --permanent
+    $ sudo firewall-cmd reload
