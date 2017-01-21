@@ -1,7 +1,7 @@
 #####
 Logga
 #####
-Convert configuration items into Python objects.
+Python logging made super easy!  Build and read the docs (as per below) for more info.
 
 *************
 Prerequisites
