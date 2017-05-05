@@ -4,7 +4,7 @@ import setuptools
 
 
 PACKAGES = [
-    'pylint==1.6.4',
+    'pylint',
     'sphinx_rtd_theme==0.1.10a0',
     'twine',
     'Sphinx==1.4.5',
@@ -12,7 +12,7 @@ PACKAGES = [
 
 SETUP_KWARGS = {
     'name': 'logga',
-    'version': '1.0.0',
+    'version': '1.0.1',
     'description': 'Python standard log wrapper, with added goodness',
     'author': 'Lou Markovski',
     'author_email': 'lou.markovski@gmail.com',
