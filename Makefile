@@ -13,6 +13,8 @@ init-dev: py-venv-clear py-venv-init py-install-makester
 init: _venv-init
 	$(MAKE) py-install
 
+MAKESTER__VERSION_FILE := $(MAKESTER__PYTHON_PROJECT_ROOT)/VERSION
+
 TESTS := tests
 tests:
 	$(MAKESTER__PYTHON) -m pytest\
