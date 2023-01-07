@@ -1,0 +1,5 @@
+[run]
+omit = tests/*,[23v]env/*
+
+[report]
+show_missing = True
