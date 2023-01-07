@@ -1,86 +1,102 @@
-__all__ = [
-    "log",
-    "set_console",
-    "set_log_level",
-    "suppress_logging",
-    "enable_logging",
-    "autolog",
-]
+"""Custom logger based on content from https://docs.python.org/3/howto/logging-cookbook.html
 
+Configuration file for the logging module can be provided in the following locations:
+- A place named by the environment variable `LOGGA_CONF`
+- Current directory - `./log.conf`
+- User's home directory - `~$USER/log.conf`
+- Calling module's default package config - `<module_path>/config/log.conf`
+
+This arrangement is analogous to "rc" files. for example, "bashrc", "vimrc", etc.
+
+"""
+from typing import List, Optional, Text
+import datetime
+import inspect
 import logging
 import logging.config
 import os
-import datetime
-import inspect
+import pathlib
 
 
-"""Configuration file for the logging module can be provided in the
-following locations:
+def locations() -> List[Text]:
+    """Provide logging configuration directory locations in order of precedence.
 
-  * A place named by an environment variable `LOG_CONF`
-  * Local directory - `./log.conf`
-  * User's home directory - `~user/log.conf`
+    Returns a list of locations as a set of strings that represent the directory location of the
+    log.conf file.
 
-This arrangement is analogous to "rc" files.  for example, "bashrc",
-"vimrc", etc.
-"""
+    """
+    def items():
+        return (os.environ.get('LOGGA_CONF'),
+                os.getcwd(),
+                pathlib.Path.home(),
+                os.path.join(os.path.dirname(inspect.stack()[1].filename), 'config'))
 
-locations = [
-    os.environ.get("LOG_CONF"),
-    os.curdir,
-    os.path.expanduser("~"),
-]
+    return items()
 
-found_log_config = False
-for loc in locations:
+
+FOUND_LOG_CONFIG = False
+for loc in locations():
     if loc is None:
         continue
 
     try:
-        source = open(os.path.join(loc, 'log.conf'))
+        with open(os.path.join(loc, 'log.conf'), encoding='utf-8') as _fh:
+            logging.config.fileConfig(_fh)
+            FOUND_LOG_CONFIG = True
+            break
     except IOError as err:
-        # Not a bad thing if the open failed.  Just means that the log
+        # Not a bad thing if the open failed. Just means that the log
         # source does not exist.
         continue
 
-    try:
-        logging.config.fileConfig(source)
-        source.close()
-        found_log_config = True
-        break
-    except Exception as err:
-        pass
 
-# Holy crap!  Some black magic to identify logger handlers ...
-# The calling script will be the outermost call in the stack.  Parse the
-# resulting frame to get the name of the script.
-logger_name = None
-if found_log_config:
-    s = inspect.stack()
-    logger_name = os.path.basename(s[-1][1])
-    if logger_name == 'nosetests' or logger_name == '<stdin>':
-        logger_name = None
+def logger_name() -> Optional[Text]:
+    """Identify logger handlers.
+
+    The calling script will be the outermost call in the stack. Parse the
+    resulting frame to get the name of the script.
+
+    """
+    _name = None
+    if FOUND_LOG_CONFIG:
+        stack = inspect.stack()
+        _name = os.path.basename(stack[-1][1])
+        if _name == '<stdin>':
+            _name = None
+
+    return _name
 
 
-log = logging.getLogger(logger_name)
-if logger_name is not None:
+def default_console_config() -> logging.StreamHandler:
+    """Default console config that can be used as a fallback.
+
+    Returns a logging.StreamHandler configured with a simple format.
+
+    """
+    console_handler = logging.StreamHandler()
+    console_formatter = logging.Formatter("%(asctime)s [%(levelname)s]:: %(message)s")
+    console_handler.setFormatter(console_formatter)
+
+    return console_handler
+
+
+log = logging.getLogger(logger_name())
+
+if logger_name() is not None:
     # Contain logging to the configured handler only (not console).
     log.propagate = False
 
-if not found_log_config:
+if not FOUND_LOG_CONFIG:
     # If no config, just dump a basic log message to console.
-    ch = logging.StreamHandler()
-    formatter = logging.Formatter("%(asctime)s %(levelname)s:: %(message)s")
-    ch.setFormatter(formatter)
-    log.addHandler(ch)
+    log.addHandler(default_console_config())
     log.level = logging.NOTSET
 
 
 def set_console():
-    """Drop back to the root logger handler.  This is typically the console.
+    """Drop back to the root logger handler. This is typically the console.
 
     This can be used to override the logging file output stream and send
-    log messages to the console.  For example, consider the following
+    log messages to the console. For example, consider the following
     code that has a ``log.conf`` that writes to the log file ``my.log``::
 
         from logga import log, set_console
@@ -95,16 +111,13 @@ def set_console():
         log.removeHandler(hdlr)
     log.propagate = False
 
-    ch = logging.StreamHandler()
-    formatter = logging.Formatter("%(asctime)s %(levelname)s:: %(message)s")
-    ch.setFormatter(formatter)
-    log.addHandler(ch)
+    log.addHandler(default_console_config())
     log.level = logging.NOTSET
 
 
 def set_log_level(level='INFO'):
-    """Set the lower threshold of logged message level.  Level
-    defaults to ``INFO``.  All default log levels are supported
+    """Set the lower threshold of logged message level. Level
+    defaults to ``INFO``. All default log levels are supported
     ``NOTSET``, ``DEBUG``, ``INFO``, ``WARNING``, ``ERROR`` and
     ``CRITICAL`` in order of severity.
 
@@ -120,7 +133,7 @@ def set_log_level(level='INFO'):
         2014-06-30 12:51:44,782 INFO:: This INFO message should display
 
     **Kwargs:**
-        *level*: the lower log level threshold.  All log levels including
+        *level*: the lower log level threshold. All log levels including
         and above this level in serverity will be logged
 
     """
@@ -143,7 +156,7 @@ def suppress_logging():
     When the need arises to temporarily throttle logging output down
     across the whole application, this function can be useful.
     Its effect is to disable all logging calls below severity level
-    ``CRITICAL``.  For example::
+    ``CRITICAL``. For example::
 
         >>> from logga import log, suppress_logging
         >>> log.debug('This DEBUG message should display')
@@ -176,7 +189,7 @@ def enable_logging():
 def autolog(message):
     """Automatically log the current function details.
 
-    Used interchangeably with the ``log`` handler object.  Handy for
+    Used interchangeably with the ``log`` handler object. Handy for
     for verbose messaging during development by adding more verbose detail
     to the logging message, such as the calling function/method name
     and line number that raised the log call::
@@ -196,11 +209,8 @@ def autolog(message):
     if log.isEnabledFor(logging.DEBUG):
         # Get the previous frame in the stack.
         # Otherwise it would be this function!!!
-        f = inspect.currentframe().f_back.f_code
+        frame = inspect.currentframe().f_back.f_code
         lineno = inspect.currentframe().f_back.f_lineno
 
         # Dump the message function details to the log.
-        log.debug("%s: %s in %s:%i" % (message,
-                                       f.co_name,
-                                       f.co_filename,
-                                       lineno))
+        log.debug('%s: %s in %s:%i', message, frame.co_name, frame.co_filename, lineno)
