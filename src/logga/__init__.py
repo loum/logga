@@ -4,7 +4,8 @@ Configuration file for the logging module can be provided in the following locat
 - A place named by the environment variable `LOGGA_CONF`
 - Current directory - `./log.conf`
 - User's home directory - `~$USER/log.conf`
-- Calling module's default package config - `<module_path>/config/log.conf`
+
+If not found, fallback is Logga's own configuration.
 
 This arrangement is analogous to "rc" files. for example, "bashrc", "vimrc", etc.
 
@@ -28,68 +29,76 @@ def locations() -> List[Text]:
     def items():
         return (os.environ.get('LOGGA_CONF'),
                 os.getcwd(),
-                pathlib.Path.home(),
-                os.path.join(os.path.dirname(inspect.stack()[1].filename), 'config'))
+                pathlib.Path.home())
 
     return items()
 
 
-FOUND_LOG_CONFIG = False
-for loc in locations():
-    if loc is None:
-        continue
-
-    try:
-        with open(os.path.join(loc, 'log.conf'), encoding='utf-8') as _fh:
-            logging.config.fileConfig(_fh)
-            FOUND_LOG_CONFIG = True
-            break
-    except IOError as err:
-        # Not a bad thing if the open failed. Just means that the log
-        # source does not exist.
-        continue
-
-
-def logger_name() -> Optional[Text]:
-    """Identify logger handlers.
+def get_logger_name() -> Optional[Text]:
+    """Identify logger name to target handlers.
 
     The calling script will be the outermost call in the stack. Parse the
     resulting frame to get the name of the script.
 
+    `<stdin>` is a special case that will explicitly return `None`
+
+    Returns the logger name as a string, or None.
+
     """
-    _name = None
-    if FOUND_LOG_CONFIG:
-        stack = inspect.stack()
-        _name = os.path.basename(stack[-1][1])
-        if _name == '<stdin>':
-            _name = None
+    _name = os.path.basename(inspect.stack()[-1][1])
+    if _name == '<stdin>':
+        _name = None
 
     return _name
 
 
-def default_console_config() -> logging.StreamHandler:
-    """Default console config that can be used as a fallback.
-
-    Returns a logging.StreamHandler configured with a simple format.
+def source_logger_config():
+    """Source logger config.
 
     """
-    console_handler = logging.StreamHandler()
-    console_formatter = logging.Formatter("%(asctime)s [%(levelname)s]:: %(message)s")
-    console_handler.setFormatter(console_formatter)
+    config_found = False
+    for loc in locations():
+        if loc is None:
+            continue
 
-    return console_handler
+        try:
+            with open(os.path.join(loc, 'log.conf'), encoding='utf-8') as _fh:
+                logging.config.fileConfig(_fh)
+                config_found = True
+                break
+        except IOError:
+            # Not a bad thing if the open failed. Just means that the log
+            # source does not exist.
+            continue
+
+    logger_name: Optional[Text] = get_logger_name()
+
+    if not config_found:
+        logger_name = 'logga'
+
+        # If we've fallen through to here, then use Logga's own config.
+        config_path = os.path.join(pathlib.Path(__file__).resolve().parents[0],
+                                   'config',
+                                  'log.conf')
+        with open(config_path, encoding='utf-8') as _fh:
+            logging.config.fileConfig(_fh)
+
+    return logger_name
 
 
-log = logging.getLogger(logger_name())
+def logger_name() -> Optional[Text]:
+    """
+    """
+    def source():
+        return source_logger_config()
 
-if logger_name() is not None:
+    return source()
+
+log = logging.getLogger(source_logger_config())
+
+if log.name is not None:
     # Contain logging to the configured handler only (not console).
     log.propagate = False
-
-if not FOUND_LOG_CONFIG:
-    # If no config, just dump a basic log message to console.
-    log.addHandler(default_console_config())
-    log.level = logging.NOTSET
 
 
 def set_console():
@@ -107,8 +116,21 @@ def set_console():
     ``Log from inside my Python module`` to the console.
 
     """
+    def default_console_config() -> logging.StreamHandler:
+        """Default console config that can be used as a fallback.
+
+        Returns a logging.StreamHandler configured with a simple format.
+
+        """
+        console_handler = logging.StreamHandler()
+        console_formatter = logging.Formatter("%(asctime)s [%(levelname)s]:: %(message)s")
+        console_handler.setFormatter(console_formatter)
+
+        return console_handler
+
     for hdlr in log.handlers:
         log.removeHandler(hdlr)
+
     log.propagate = False
 
     log.addHandler(default_console_config())
