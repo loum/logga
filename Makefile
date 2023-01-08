@@ -6,7 +6,7 @@ include makester/makefiles/makester.mk
 _venv-init: py-venv-clear py-venv-init
 
 # Install optional packages for development.
-init-dev: py-venv-clear py-venv-init py-install-makester
+init-dev: _venv-init py-install-makester
 	MAKESTER__PIP_INSTALL_EXTRAS=dev $(MAKE) py-install-extras
 
 # Streamlined production packages.
