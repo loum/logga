@@ -1,9 +1,11 @@
-"""Custom logger based on content from https://docs.python.org/3/howto/logging-cookbook.html
+"""Custom logger based on content from
+[Logging Cookbook](https://docs.python.org/3/howto/logging-cookbook.html).
 
 Configuration file for the logging module can be provided in the following locations:
+
 - A place named by the environment variable `LOGGA_CONF`
-- Current directory - `./log.conf`
-- User's home directory - `~$USER/log.conf`
+- Current directory: `./log.conf`
+- User's home directory: `~$USER/log.conf`
 
 If not found, fallback is Logga's own configuration.
 
@@ -22,8 +24,8 @@ import pathlib
 def locations() -> List[Text]:
     """Provide logging configuration directory locations in order of precedence.
 
-    Returns a list of locations as a set of strings that represent the directory location of the
-    log.conf file.
+    Returns:
+        A list of locations as a set of strings that represent the directory location of the `log.conf` file.
 
     """
     def items():
@@ -42,7 +44,8 @@ def get_logger_name() -> Optional[Text]:
 
     `<stdin>` is a special case that will explicitly return `None`
 
-    Returns the logger name as a string, or None.
+    Returns:
+        The logger name as a string, or `None`.
 
     """
     _name = os.path.basename(inspect.stack()[-1][1])
@@ -52,8 +55,15 @@ def get_logger_name() -> Optional[Text]:
     return _name
 
 
-def source_logger_config():
+def source_logger_config() -> Text:
     """Source logger config.
+
+    Will attempt to parse a `log.conf` file to feed into `logging.config.fileConfig`. Will also
+    determine the name of the calling script/module and associate that logger name with the
+    `log.conf`.
+
+    Returns:
+        The name of the logger. Fallback, if no `log.conf` files are found is the `logga` logger.
 
     """
     config_found = False
@@ -86,15 +96,8 @@ def source_logger_config():
     return logger_name
 
 
-def logger_name() -> Optional[Text]:
-    """
-    """
-    def source():
-        return source_logger_config()
-
-    return source()
-
 log = logging.getLogger(source_logger_config())
+
 
 if log.name is not None:
     # Contain logging to the configured handler only (not console).
@@ -106,13 +109,16 @@ def set_console():
 
     This can be used to override the logging file output stream and send
     log messages to the console. For example, consider the following
-    code that has a ``log.conf`` that writes to the log file ``my.log``::
+    code that has a `log.conf`` that writes to the log file `my.log`:
 
-        from logga import log, set_console
-        set_console()
-        log.debug('Log from inside my Python module')
+    ```
+    from logga import log, set_console
 
-    The ``set_console()`` call will force the log message to write
+    set_console()
+    log.debug('Log from inside my Python module')
+    ```
+
+    The `set_console()` call will force the log message to write
     ``Log from inside my Python module`` to the console.
 
     """
@@ -137,26 +143,32 @@ def set_console():
     log.level = logging.NOTSET
 
 
-def set_log_level(level='INFO'):
-    """Set the lower threshold of logged message level. Level
-    defaults to ``INFO``. All default log levels are supported
-    ``NOTSET``, ``DEBUG``, ``INFO``, ``WARNING``, ``ERROR`` and
-    ``CRITICAL`` in order of severity.
+def set_log_level(level: Text = 'INFO'):
+    """Set the lower threshold of logged message level. Level defaults to `INFO``.
+    All default log levels are supported (in order of severity):
 
-    For example::
+    - `CRITICAL`
+    - `ERROR`
+    - `WARNING`
+    - `INFO`
+    - `DEBUG`
+    - `NOTSET`
 
-        >>> from logga import log, set_log_level
-        >>> log.debug('This DEBUG message should display')
-        2014-06-30 12:50:48,407 DEBUG:: This DEBUG message should display
-        >>> set_log_level(level='INFO')
-        >>> log.debug('This DEBUG message should now not display')
-        >>> log.debug('This DEBUG message should now not display')
-        >>> log.info('This INFO message should display')
-        2014-06-30 12:51:44,782 INFO:: This INFO message should display
+    Example:
 
-    **Kwargs:**
-        *level*: the lower log level threshold. All log levels including
-        and above this level in serverity will be logged
+    ```
+    >>> from logga import log, set_log_level
+    >>> log.info('This INFO message should display')
+    2023-01-09 10:29:04 logga [INFO]: This INFO message should display
+    >>> log.debug('Not this DEBUG')
+    >>> set_log_level(level='DEBUG')
+    >>> log.debug('DEBUG is now good to go')
+    2023-01-09 10:30:15 logga [DEBUG]: DEBUG is now good to go
+    ```
+
+    Parameters:
+        level: the lower log level threshold. All log levels, including and above this level in
+               serverity, will be logged
 
     """
     level_map = {
@@ -172,60 +184,48 @@ def set_log_level(level='INFO'):
 
 
 def suppress_logging():
-    """Provides an overriding (to level ``CRITICAL``) suppression mechanism
+    """Provides an overriding (to level `CRITICAL`) suppression mechanism
     for all loggers which takes precedence over the logger`s own level.
 
-    When the need arises to temporarily throttle logging output down
-    across the whole application, this function can be useful.
-    Its effect is to disable all logging calls below severity level
-    ``CRITICAL``. For example::
+    This function can be useful when the need arises to temporarily throttle logging output down
+    across the whole application.
 
-        >>> from logga import log, suppress_logging
-        >>> log.debug('This DEBUG message should display')
-        2014-06-30 13:00:39,882 DEBUG:: This DEBUG message should display
-        >>> suppress_logging()
-        >>> log.debug('This DEBUG message should now not display')
-        >>> log.critical('But CRITICAL messages will get through')
-        2014-06-30 13:02:59,159 CRITICAL:: But CRITICAL messages will get through
+    Technically, this function will disable all logging calls below severity level `CRITICAL`. For example:
 
+    ```
+    >>> from logga import log, suppress_logging
+    >>> log.info('This INFO message should display')
+    2023-01-09 10:33:43 logga [INFO]: This INFO message should display
+    >>> suppress_logging()
+    >>> log.info('This INFO message should NOT display')
+    >>> log.critical('But CRITICAL messages will get through')
+    2023-01-09 10:36:17 logga [CRITICAL]: But CRITICAL messages will get through
+    ```
     """
     logging.disable(logging.ERROR)
-
-
-def enable_logging():
-    """Opposite of the :func:`logga.suppress_logging` function.
-
-    Re-enables logging to ``DEBUG`` level and above::
-
-        >>> from logga import log, suppress_logging, enable_logging
-        >>> suppress_logging()
-        >>> log.debug('This DEBUG message should now not display')
-        >>> enable_logging()
-        >>> log.debug('This DEBUG message should now display')
-        2014-06-30 13:08:22,173 DEBUG:: This DEBUG message should now display
-
-    """
-    logging.disable(logging.NOTSET)
 
 
 def autolog(message):
     """Automatically log the current function details.
 
-    Used interchangeably with the ``log`` handler object. Handy for
+    Used interchangeably with the `log` handler object. Handy for
     for verbose messaging during development by adding more verbose detail
     to the logging message, such as the calling function/method name
-    and line number that raised the log call::
+    and line number that raised the log call. Will only work at the `DEBUG` level:
 
-        >>> from logga import autolog
-        >>> autolog('Verbose')
-        2014-06-30 13:13:08,063 DEBUG:: Verbose: <module> in <stdin>:1
-        >>> log.debug('DEBUG message')
-        2014-06-30 13:15:35,319 DEBUG:: DEBUG message
-        >>> autolog('DEBUG message')
-        2014-06-30 13:15:41,760 DEBUG:: DEBUG message: <module> in <stdin>:1
+    ```
+    >>> from logga import autolog, log, set_log_level
+    >>> set_log_level('DEBUG')
+    >>> autolog('Verbose')
+    2023-01-09 10:46:12 logga [DEBUG]: Verbose: <module> in <stdin>:1
+    >>> log.debug('DEBUG message')
+    2023-01-09 10:47:11 logga [DEBUG]: DEBUG message
+    >>> autolog('DEBUG message')
+    >>> 2023-01-09 10:47:34 logga [DEBUG]: DEBUG message: <module> in <stdin>:1
+    ```
 
-    **Args:**
-        *message*: the log message to display
+    Parameters:
+        message: the log message to display
 
     """
     if log.isEnabledFor(logging.DEBUG):
