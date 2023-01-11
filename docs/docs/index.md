@@ -1,12 +1,9 @@
 # Logga
 
-The `logga` module wraps the standard [Python logging](https://docs.python.org/3/library/logging.html) module and
-abstract some of the messy parts. `logging` itself is is similar to (possibly even motivated by) the
-[log4j](https://logging.apache.org/log4j/2.x/) facility. Most importantly, `logging` guarantees a singleton object
+`logga` wraps the standard [Python logging](https://docs.python.org/3/library/logging.html) module and
+abstracts some of the messy parts. `logging` itself is similar to (possibly even motivated by) the
+[log4j](https://logging.apache.org/log4j/2.x/) project. Most importantly, `logging` guarantees a singleton object
 that can be used throughout your project.
-
-One of the handiest features with `logga` is that it automatically detects the output stream and is able to
-direct the logging ouput to `STDOUT` or to a file stream (if configured).
 
 Other useful links:
 
@@ -15,12 +12,10 @@ Other useful links:
 
 ## Simplest Usage (Console)
 
-Simply import the logga log handler object into your project.
-
 !!! note
     Behind the scenes, the `logga` log handler object is instantiated through the module-level
     function `logging.getLogger(name)`. Multiple calls to `getLogger()` with the same name will always
-    return a reference to the same Logger object.
+    return a reference to the same logger object.
 
     `name` is defined as the highest level Python calling module. For example, in the
     [Module usage](#module-usage) sample below,
@@ -30,8 +25,8 @@ The following example demonstrates console-based usage that writes to `STDOUT` f
 
 ``` sh title="Logga from the Python interpreter"
 >>> from logga import log, set_log_level
->>> log.info('This is a INFO level logging')
-2023-01-08 22:56:56 logga [INFO]: This is a INFO level logging
+>>> log.info('This is an INFO level log')
+2023-01-08 22:56:56 logga [INFO]: This is an INFO level log
 ```
 
 `logga` provides a default logger for you. This defaults to the log level `INFO`. You can set the
@@ -39,19 +34,19 @@ log level with the `set_log_level` function:
 
 ``` sh title="Change log level to WARNING. DEBUG is suppressed."
 >>> set_log_level('WARNING')
->>> log.debug('This is a DEBUG level logging')
+>>> log.debug('This is a DEBUG level log')
 >>>
 ```
 
 ``` sh title="Change log level to DEBUG. DEBUG is displayed."
 >>> set_log_level('DEBUG')
->>> log.debug('This is a DEBUG level logging')
->>> 2023-01-08 23:03:13 logga [DEBUG]: This is a DEBUG level logging
+>>> log.debug('This is a DEBUG level log')
+>>> 2023-01-08 23:03:13 logga [DEBUG]: This is a DEBUG level log
 ```
 
 ## Module usage
-Logging from your `*.py` is probably a more useful proposition. Similarly, import `logga` into your Python
-module. To demonstrate, add the following code into a file called `you_beaut.py`:
+Logging from your `*.py` is probably a more useful proposition. To demonstrate, add the
+following code into a file called `you_beaut.py`:
 
 ``` sh title="you_beaut.py"
 from logga import log
@@ -70,7 +65,7 @@ python you_beaut.py
 ```
 
 But what if you want to log to a file? In this case you will have to provide configuration. The structure
-of the config is standard `logging`. In this case, place the following into a the file called `log.conf`
+of the config is standard `logging`. For example, place the following configuration into a file called `log.conf`
 in the same directory as `you_beaut.py`:
 
 ``` sh title="Sample log.conf"
@@ -115,7 +110,7 @@ format=%(asctime)s (%(levelname)s): %(message)s
 datefmt=
 ```
 
-Now when you `python you_beaut.py` you will notice that output to the console is suppressed.
+Now, when you `python you_beaut.py` you will notice that output to the console is suppressed.
 Instead, the output is directed to a file stream defined by the `handler_youBeautFileHandler` section from
 the `log.conf` file. To verify:
 
