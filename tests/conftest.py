@@ -10,11 +10,10 @@ import pytest
 
 @pytest.fixture
 def working_dir(request):
-    """Temporary working directory.
-    """
+    """Temporary working directory."""
+
     def fin():
-        """Tear down.
-        """
+        """Tear down."""
         logging.info('Deleting temporary test directory: "%s"', dirpath)
         shutil.rmtree(dirpath)
 
