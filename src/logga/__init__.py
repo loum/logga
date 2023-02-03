@@ -12,7 +12,8 @@ If not found, fallback is Logga's own configuration.
 This arrangement is analogous to "rc" files. for example, "bashrc", "vimrc", etc.
 
 """
-from typing import List, Optional, Text
+from types import CodeType, FrameType
+from typing import Any, List, Optional, Text, Union, cast
 import datetime
 import inspect
 import logging
@@ -25,13 +26,13 @@ def locations() -> List[Text]:
     """Provide logging configuration directory locations in order of precedence.
 
     Returns:
-        A list of locations as a set of strings that represent the directory location of the `log.conf` file.
+        A list of locations as a set of strings that represent the directory location
+            of the `log.conf` file.
 
     """
+
     def items():
-        return (os.environ.get('LOGGA_CONF'),
-                os.getcwd(),
-                pathlib.Path.home())
+        return (os.environ.get("LOGGA_CONF"), os.getcwd(), pathlib.Path.home())
 
     return items()
 
@@ -48,14 +49,14 @@ def get_logger_name() -> Optional[Text]:
         The logger name as a string, or `None`.
 
     """
-    _name = os.path.basename(inspect.stack()[-1][1])
-    if _name == '<stdin>':
+    _name: Optional[Text] = os.path.basename(inspect.stack()[-1][1])
+    if _name == "<stdin>":
         _name = None
 
     return _name
 
 
-def source_logger_config() -> Text:
+def source_logger_config() -> Optional[Text]:
     """Source logger config.
 
     Will attempt to parse a `log.conf` file to feed into `logging.config.fileConfig`. Will also
@@ -72,7 +73,7 @@ def source_logger_config() -> Text:
             continue
 
         try:
-            with open(os.path.join(loc, 'log.conf'), encoding='utf-8') as _fh:
+            with open(os.path.join(loc, "log.conf"), encoding="utf-8") as _fh:
                 logging.config.fileConfig(_fh)
                 config_found = True
                 break
@@ -84,13 +85,13 @@ def source_logger_config() -> Text:
     logger_name: Optional[Text] = get_logger_name()
 
     if not config_found:
-        logger_name = 'logga'
+        logger_name = "logga"
 
         # If we've fallen through to here, then use Logga's own config.
-        config_path = os.path.join(pathlib.Path(__file__).resolve().parents[0],
-                                   'config',
-                                  'log.conf')
-        with open(config_path, encoding='utf-8') as _fh:
+        config_path = os.path.join(
+            pathlib.Path(__file__).resolve().parents[0], "config", "log.conf"
+        )
+        with open(config_path, encoding="utf-8") as _fh:
             logging.config.fileConfig(_fh)
 
     return logger_name
@@ -109,19 +110,20 @@ def set_console():
 
     This can be used to override the logging file output stream and send
     log messages to the console. For example, consider the following
-    code that has a `log.conf`` that writes to the log file `my.log`:
+    code that has a `log.conf` that writes to the log file `my.log`:
 
     ```
     from logga import log, set_console
 
     set_console()
-    log.debug('Log from inside my Python module')
+    log.debug("Log from inside my Python module")
     ```
 
     The `set_console()` call will force the log message to write
-    ``Log from inside my Python module`` to the console.
+    `Log from inside my Python module` to the console.
 
     """
+
     def default_console_config() -> logging.StreamHandler:
         """Default console config that can be used as a fallback.
 
@@ -129,7 +131,9 @@ def set_console():
 
         """
         console_handler = logging.StreamHandler()
-        console_formatter = logging.Formatter("%(asctime)s [%(levelname)s]:: %(message)s")
+        console_formatter = logging.Formatter(
+            "%(asctime)s [%(levelname)s]:: %(message)s"
+        )
         console_handler.setFormatter(console_formatter)
 
         return console_handler
@@ -143,7 +147,7 @@ def set_console():
     log.level = logging.NOTSET
 
 
-def set_log_level(level: Text = 'INFO'):
+def set_log_level(level: Text = "INFO"):
     """Set the lower threshold of logged message level. Level defaults to `INFO``.
     All default log levels are supported (in order of severity):
 
@@ -158,11 +162,11 @@ def set_log_level(level: Text = 'INFO'):
 
     ```
     >>> from logga import log, set_log_level
-    >>> log.info('This INFO message should display')
+    >>> log.info("This INFO message should display")
     2023-01-09 10:29:04 logga [INFO]: This INFO message should display
-    >>> log.debug('Not this DEBUG')
-    >>> set_log_level(level='DEBUG')
-    >>> log.debug('DEBUG is now good to go')
+    >>> log.debug("Not this DEBUG")
+    >>> set_log_level(level="DEBUG")
+    >>> log.debug("DEBUG is now good to go")
     2023-01-09 10:30:15 logga [DEBUG]: DEBUG is now good to go
     ```
 
@@ -172,12 +176,12 @@ def set_log_level(level: Text = 'INFO'):
 
     """
     level_map = {
-        'CRITICAL': logging.INFO,
-        'ERROR': logging.INFO,
-        'WARNING': logging.INFO,
-        'INFO': logging.INFO,
-        'DEBUG': logging.DEBUG,
-        'NOTSET': logging.DEBUG,
+        "CRITICAL": logging.INFO,
+        "ERROR": logging.INFO,
+        "WARNING": logging.INFO,
+        "INFO": logging.INFO,
+        "DEBUG": logging.DEBUG,
+        "NOTSET": logging.DEBUG,
     }
 
     log.setLevel(level_map[level])
@@ -190,22 +194,23 @@ def suppress_logging():
     This function can be useful when the need arises to temporarily throttle logging output down
     across the whole application.
 
-    Technically, this function will disable all logging calls below severity level `CRITICAL`. For example:
+    Technically, this function will disable all logging calls below severity level
+    `CRITICAL`. For example:
 
     ```
     >>> from logga import log, suppress_logging
-    >>> log.info('This INFO message should display')
+    >>> log.info("This INFO message should display")
     2023-01-09 10:33:43 logga [INFO]: This INFO message should display
     >>> suppress_logging()
-    >>> log.info('This INFO message should NOT display')
-    >>> log.critical('But CRITICAL messages will get through')
+    >>> log.info("This INFO message should NOT display")
+    >>> log.critical("But CRITICAL messages will get through")
     2023-01-09 10:36:17 logga [CRITICAL]: But CRITICAL messages will get through
     ```
     """
     logging.disable(logging.ERROR)
 
 
-def autolog(message):
+def autolog(message: Text):
     """Automatically log the current function details.
 
     Used interchangeably with the `log` handler object. Handy for
@@ -215,13 +220,13 @@ def autolog(message):
 
     ```
     >>> from logga import autolog, log, set_log_level
-    >>> set_log_level('DEBUG')
-    >>> autolog('Verbose')
-    2023-01-09 10:46:12 logga [DEBUG]: Verbose: <module> in <stdin>:1
-    >>> log.debug('DEBUG message')
+    >>> set_log_level("DEBUG")
+    >>> autolog("Verbose")
+    2023-01-09 10:46:12 logga [DEBUG]: Verbose: autolog in <$HOME>/src/logga/__init__.py
+    >>> log.debug("DEBUG message")
     2023-01-09 10:47:11 logga [DEBUG]: DEBUG message
-    >>> autolog('DEBUG message')
-    >>> 2023-01-09 10:47:34 logga [DEBUG]: DEBUG message: <module> in <stdin>:1
+    >>> autolog("DEBUG message")
+    >>> 2023-01-09 10:47:34 logga [DEBUG]: DEBUG message: autolog in <$HOME>/src/logga/__init__.py
     ```
 
     Parameters:
@@ -231,8 +236,8 @@ def autolog(message):
     if log.isEnabledFor(logging.DEBUG):
         # Get the previous frame in the stack.
         # Otherwise it would be this function!!!
-        frame = inspect.currentframe().f_back.f_code
-        lineno = inspect.currentframe().f_back.f_lineno
+        frame: CodeType = cast(FrameType, inspect.currentframe()).f_code
+        lineno: Union[int, Any] = cast(FrameType, inspect.currentframe()).f_lineno
 
         # Dump the message function details to the log.
-        log.debug('%s: %s in %s:%i', message, frame.co_name, frame.co_filename, lineno)
+        log.debug("%s: %s in %s:%i", message, frame.co_name, frame.co_filename, lineno)

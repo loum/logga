@@ -25,7 +25,7 @@ The following example demonstrates console-based usage that writes to `STDOUT` f
 
 ``` sh title="Logga from the Python interpreter"
 >>> from logga import log, set_log_level
->>> log.info('This is an INFO level log')
+>>> log.info("This is an INFO level log")
 2023-01-08 22:56:56 logga [INFO]: This is an INFO level log
 ```
 
@@ -33,14 +33,14 @@ The following example demonstrates console-based usage that writes to `STDOUT` f
 log level with the `set_log_level` function:
 
 ``` sh title="Change log level to WARNING. DEBUG is suppressed."
->>> set_log_level('WARNING')
->>> log.debug('This is a DEBUG level log')
+>>> set_log_level("WARNING")
+>>> log.debug("This is a DEBUG level log")
 >>>
 ```
 
 ``` sh title="Change log level to DEBUG. DEBUG is displayed."
->>> set_log_level('DEBUG')
->>> log.debug('This is a DEBUG level log')
+>>> set_log_level("DEBUG")
+>>> log.debug("This is a DEBUG level log")
 >>> 2023-01-08 23:03:13 logga [DEBUG]: This is a DEBUG level log
 ```
 
@@ -51,7 +51,7 @@ following code into a file called `you_beaut.py`:
 ``` sh title="you_beaut.py"
 from logga import log
 
-log.info('Log from inside my Python module')
+log.info("Log from inside my Python module")
 ```
 
 To execute:
@@ -97,7 +97,7 @@ handlers=youBeautFileHandler
 class=handlers.TimedRotatingFileHandler
 level=DEBUG
 formatter=simpleFormatter
-args=(os.path.join(os.sep, 'var', 'tmp', 'you_beaut.log'), 'midnight')
+args=(os.path.join(os.sep, "var", "tmp", "you_beaut.log"), "midnight")
 
 [handler_consoleHandler]
 class=StreamHandler
