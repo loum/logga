@@ -15,7 +15,7 @@
         <link rel="next" href="functions/">
       
       <link rel="icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.3">
+      <meta name="generator" content="mkdocs-1.4.2, mkdocs-material-9.0.10">
     
     
       
@@ -23,7 +23,7 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.6b71719e.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.0d440cfe.min.css">
       
         
         <link rel="stylesheet" href="assets/stylesheets/palette.2505c338.min.css">
@@ -161,7 +161,7 @@
           <div class="md-search-result__meta">
             Initializing search
           </div>
-          <ol class="md-search-result__list"></ol>
+          <ol class="md-search-result__list" role="presentation"></ol>
         </div>
       </div>
     </div>
@@ -252,7 +252,7 @@
   
     <li class="md-nav__item md-nav__item--active">
       
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
       
       
         
@@ -376,46 +376,43 @@
 
 
 <h1 id="logga">Logga</h1>
-<p>The <code>logga</code> module wraps the standard <a href="https://docs.python.org/3/library/logging.html">Python logging</a> module and
-abstract some of the messy parts. <code>logging</code> itself is is similar to (possibly even motivated by) the
-<a href="https://logging.apache.org/log4j/2.x/">log4j</a> facility. Most importantly, <code>logging</code> guarantees a singleton object
+<p><code>logga</code> wraps the standard <a href="https://docs.python.org/3/library/logging.html">Python logging</a> module and
+abstracts some of the messy parts. <code>logging</code> itself is similar to (possibly even motivated by) the
+<a href="https://logging.apache.org/log4j/2.x/">log4j</a> project. Most importantly, <code>logging</code> guarantees a singleton object
 that can be used throughout your project.</p>
-<p>One of the handiest features with <code>logga</code> is that it automatically detects the output stream and is able to
-direct the logging ouput to <code>STDOUT</code> or to a file stream (if configured).</p>
 <p>Other useful links:</p>
 <ul>
 <li><a href="https://docs.python.org/3/library/logging.config.html#module-logging.config">logging.config — Logging configuration</a></li>
 <li><a href="https://docs.python.org/3/howto/logging-cookbook.html">Logging Cookbook</a></li>
 </ul>
 <h2 id="simplest-usage-console">Simplest Usage (Console)</h2>
-<p>Simply import the logga log handler object into your project.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Behind the scenes, the <code>logga</code> log handler object is instantiated through the module-level
 function <code>logging.getLogger(name)</code>. Multiple calls to <code>getLogger()</code> with the same name will always
-return a reference to the same Logger object.</p>
+return a reference to the same logger object.</p>
 <p><code>name</code> is defined as the highest level Python calling module. For example, in the
 <a href="#module-usage">Module usage</a> sample below,
 <code>name</code> will be <code>you_beaut.py</code>. For normal console-based output, name would be <code>&lt;stdin&gt;</code>.</p>
 </div>
 <p>The following example demonstrates console-based usage that writes to <code>STDOUT</code> from within the Python interpreter:</p>
 <div class="highlight"><span class="filename">Logga from the Python interpreter</span><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>&gt;&gt;&gt;<span class="w"> </span>from<span class="w"> </span>logga<span class="w"> </span>import<span class="w"> </span>log,<span class="w"> </span>set_log_level
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>&gt;&gt;&gt;<span class="w"> </span>log.info<span class="o">(</span><span class="s1">&#39;This is a INFO level logging&#39;</span><span class="o">)</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="m">2023</span>-01-08<span class="w"> </span><span class="m">22</span>:56:56<span class="w"> </span>logga<span class="w"> </span><span class="o">[</span>INFO<span class="o">]</span>:<span class="w"> </span>This<span class="w"> </span>is<span class="w"> </span>a<span class="w"> </span>INFO<span class="w"> </span>level<span class="w"> </span>logging
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>&gt;&gt;&gt;<span class="w"> </span>log.info<span class="o">(</span><span class="s1">&#39;This is an INFO level log&#39;</span><span class="o">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="m">2023</span>-01-08<span class="w"> </span><span class="m">22</span>:56:56<span class="w"> </span>logga<span class="w"> </span><span class="o">[</span>INFO<span class="o">]</span>:<span class="w"> </span>This<span class="w"> </span>is<span class="w"> </span>an<span class="w"> </span>INFO<span class="w"> </span>level<span class="w"> </span>log
 </code></pre></div>
 <p><code>logga</code> provides a default logger for you. This defaults to the log level <code>INFO</code>. You can set the
 log level with the <code>set_log_level</code> function:</p>
 <div class="highlight"><span class="filename">Change log level to WARNING. DEBUG is suppressed.</span><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>&gt;&gt;&gt;<span class="w"> </span>set_log_level<span class="o">(</span><span class="s1">&#39;WARNING&#39;</span><span class="o">)</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>&gt;&gt;&gt;<span class="w"> </span>log.debug<span class="o">(</span><span class="s1">&#39;This is a DEBUG level logging&#39;</span><span class="o">)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>&gt;&gt;&gt;<span class="w"> </span>log.debug<span class="o">(</span><span class="s1">&#39;This is a DEBUG level log&#39;</span><span class="o">)</span>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>&gt;&gt;&gt;
 </code></pre></div>
 <div class="highlight"><span class="filename">Change log level to DEBUG. DEBUG is displayed.</span><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>&gt;&gt;&gt;<span class="w"> </span>set_log_level<span class="o">(</span><span class="s1">&#39;DEBUG&#39;</span><span class="o">)</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>&gt;&gt;&gt;<span class="w"> </span>log.debug<span class="o">(</span><span class="s1">&#39;This is a DEBUG level logging&#39;</span><span class="o">)</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>&gt;&gt;&gt;<span class="w"> </span><span class="m">2023</span>-01-08<span class="w"> </span><span class="m">23</span>:03:13<span class="w"> </span>logga<span class="w"> </span><span class="o">[</span>DEBUG<span class="o">]</span>:<span class="w"> </span>This<span class="w"> </span>is<span class="w"> </span>a<span class="w"> </span>DEBUG<span class="w"> </span>level<span class="w"> </span>logging
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>&gt;&gt;&gt;<span class="w"> </span>log.debug<span class="o">(</span><span class="s1">&#39;This is a DEBUG level log&#39;</span><span class="o">)</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>&gt;&gt;&gt;<span class="w"> </span><span class="m">2023</span>-01-08<span class="w"> </span><span class="m">23</span>:03:13<span class="w"> </span>logga<span class="w"> </span><span class="o">[</span>DEBUG<span class="o">]</span>:<span class="w"> </span>This<span class="w"> </span>is<span class="w"> </span>a<span class="w"> </span>DEBUG<span class="w"> </span>level<span class="w"> </span>log
 </code></pre></div>
 <h2 id="module-usage">Module usage</h2>
-<p>Logging from your <code>*.py</code> is probably a more useful proposition. Similarly, import <code>logga</code> into your Python
-module. To demonstrate, add the following code into a file called <code>you_beaut.py</code>:</p>
+<p>Logging from your <code>*.py</code> is probably a more useful proposition. To demonstrate, add the
+following code into a file called <code>you_beaut.py</code>:</p>
 <div class="highlight"><span class="filename">you_beaut.py</span><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>from<span class="w"> </span>logga<span class="w"> </span>import<span class="w"> </span>log
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
 <a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>log.info<span class="o">(</span><span class="s1">&#39;Log from inside my Python module&#39;</span><span class="o">)</span>
@@ -426,7 +423,7 @@ module. To demonstrate, add the following code into a file called <code>you_beau
 <div class="highlight"><span class="filename">you_beaut.py logs</span><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="m">2023</span>-01-08<span class="w"> </span><span class="m">23</span>:20:14<span class="w"> </span>logga<span class="w"> </span><span class="o">[</span>INFO<span class="o">]</span>:<span class="w"> </span>Log<span class="w"> </span>from<span class="w"> </span>inside<span class="w"> </span>my<span class="w"> </span>Python<span class="w"> </span>module
 </code></pre></div>
 <p>But what if you want to log to a file? In this case you will have to provide configuration. The structure
-of the config is standard <code>logging</code>. In this case, place the following into a the file called <code>log.conf</code>
+of the config is standard <code>logging</code>. For example, place the following configuration into a file called <code>log.conf</code>
 in the same directory as <code>you_beaut.py</code>:</p>
 <div class="highlight"><span class="filename">Sample log.conf</span><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="o">[</span>loggers<span class="o">]</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nv">keys</span><span class="o">=</span>root,you_beaut.py,console
@@ -468,7 +465,7 @@ in the same directory as <code>you_beaut.py</code>:</p>
 <a id="__codelineno-6-38" name="__codelineno-6-38" href="#__codelineno-6-38"></a><span class="nv">format</span><span class="o">=</span>%<span class="o">(</span>asctime<span class="o">)</span>s<span class="w"> </span><span class="o">(</span>%<span class="o">(</span>levelname<span class="o">)</span>s<span class="o">)</span>:<span class="w"> </span>%<span class="o">(</span>message<span class="o">)</span>s
 <a id="__codelineno-6-39" name="__codelineno-6-39" href="#__codelineno-6-39"></a><span class="nv">datefmt</span><span class="o">=</span>
 </code></pre></div>
-<p>Now when you <code>python you_beaut.py</code> you will notice that output to the console is suppressed.
+<p>Now, when you <code>python you_beaut.py</code> you will notice that output to the console is suppressed.
 Instead, the output is directed to a file stream defined by the <code>handler_youBeautFileHandler</code> section from
 the <code>log.conf</code> file. To verify:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>cat<span class="w"> </span>/var/tmp/you_beaut.log
@@ -512,10 +509,10 @@ the <code>log.conf</code> file. To verify:</p>
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.tabs", "header.autohide", "content.code.copy"], "search": "assets/javascripts/workers/search.e5c33ebb.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": ".", "features": ["navigation.tabs", "header.autohide", "content.code.copy"], "search": "assets/javascripts/workers/search.db81ec45.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="assets/javascripts/bundle.ba449ae6.min.js"></script>
+      <script src="assets/javascripts/bundle.6df46069.min.js"></script>
       
     
   </body>
