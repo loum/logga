@@ -1,11 +1,13 @@
 site_name: Logga
 site_url: https://loum.github.io/logga/
+
 nav:
   - Home: index.md
-  - Functions: functions/index.md
+  - Reference: functions/index.md
 
 markdown_extensions:
   - admonition
+  - attr_list
   - codehilite
   - pymdownx.highlight:
       anchor_linenums: true
